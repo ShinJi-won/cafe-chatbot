@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>카페 AI 챗봇</title>
+<style>
+  body { font-family: sans-serif; max-width: 480px; margin: 40px auto; background: #f7f5f2; }
+  h2 { text-align: center; color: #3d2b1f; }
+  #chat-box { background: white; border-radius: 12px; padding: 16px; height: 420px;
+              overflow-y: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 12px; }
+  .msg { margin: 8px 0; padding: 10px 14px; border-radius: 14px; max-width: 80%; line-height: 1.4; }
+  .user { background: #3d2b1f; color: white; margin-left: auto; text-align: right; }
+  .bot { background: #eee; color: #333; }
+  #input-row { display: flex; gap: 8px; }
+  #input-box { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+  #send-btn { padding: 10px 16px; border: none; background: #3d2b1f; color: white; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <h2>☕ 카페 AI 챗봇</h2>
+  <div id="chat-box"></div>
+  <div id="input-row">
+    <input id="input-box" type="text" placeholder="궁금한 점을 물어보세요 (예: 영업시간이 어떻게 되나요?)" />
+    <button id="send-btn">전송</button>
+  </div>
+
+<script>
+  const chatBox = document.getElementById('chat-box');
+  const inputBox = document.getElementById('input-box');
+  const sendBtn = document.getElementById('send-btn');
+
+  function addMessage(text, sender) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + sender;
+    div.textContent = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = inputBox.value.trim();
+    if (!text) return;
+    addMessage(text, 'user');
+    inputBox.value = '';
+
+    addMessage('...', 'bot');
+    const loadingEl = chatBox.lastChild;
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      loadingEl.textContent = data.reply;
+    } catch (e) {
+      loadingEl.textContent = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>
+</body>
+</html>
